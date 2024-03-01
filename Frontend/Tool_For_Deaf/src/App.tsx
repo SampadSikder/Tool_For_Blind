@@ -12,8 +12,8 @@ function App() {
     //const [audio, setAudio] = useState(null);
     const mimeType = 'audio/webm';
     //const [audioBlob, setAudioBlob] = useState(null);
-    const [text, setText] = useState("");
-    const [topic, setTopic] = useState([])
+    const [text, setText] = useState([]);
+    const [topic, setTopic] = useState([]);
 
     const getMicrophonePermission = async () => {
         if ('MediaRecorder' in window) {
@@ -53,7 +53,6 @@ function App() {
             setAudioChunks([]);
             textToSpeech(audioBlob);
         };
-
     };
 
     const textToSpeech = async (audioBlob: any) => {
@@ -70,12 +69,17 @@ function App() {
                     },
                 });
                 console.log(response);
-                setText(response.data.text);
+                setText(current => [...text, response.data.text]);
+
             } catch (error) {
-                if (error.response && error.response.data.error === "Model bangla-speech-processing/BanglaASR is currently loading") {
+                if (
+                    error.response &&
+                    error.response.data.error ===
+                    'Model bangla-speech-processing/BanglaASR is currently loading'
+                ) {
                     const waitTime = error.response.data.estimated_time * 1000; // convert to milliseconds
                     console.log(`Model is loading. Retrying after ${waitTime / 1000} seconds...`);
-                    setText(`Model is loading. Retrying after ${waitTime / 1000} seconds...`)
+                    alert(`Model is loading. Retrying after ${waitTime / 1000} seconds...`);
                     setTimeout(textToSpeech, waitTime);
                 } else {
                     console.error(error);
@@ -88,7 +92,6 @@ function App() {
             <div className="audio-recorder">
                 <h2 className={styles.header}>Start Recording Your Audio Here</h2>
                 <main>
-
                     <div className="audio-controls">
                         {!permission ? (
                             <button onClick={getMicrophonePermission} type="button">
@@ -103,21 +106,11 @@ function App() {
                 </main>
                 <div className="speech-to-text">
                     <div className="text">
-                        <p>
-                            {text}
-                        </p>
+                        <div />
+                        <p>{text}</p>
                     </div>
-                    <div className="Topic">
-                        {topic.map((item, index) => (
-                            <p key={index}>
-                                {item}
-                            </p>
-                        ))}
-                    </div>
-
                 </div>
             </div>
-
         </div>
     );
 }
