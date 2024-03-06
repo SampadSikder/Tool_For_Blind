@@ -13,7 +13,7 @@ function App() {
     const mimeType = 'audio/webm';
     //const [audioBlob, setAudioBlob] = useState(null);
     const [text, setText] = useState([]);
-    const [topic, setTopic] = useState([]);
+    const [topics, setTopics] = useState([]);
 
     const getMicrophonePermission = async () => {
         if ('MediaRecorder' in window) {
@@ -70,7 +70,7 @@ function App() {
                 });
                 console.log(response);
                 setText(current => [...text, response.data.text]);
-
+                getTopicOfText(text);
             } catch (error) {
                 if (
                     error.response &&
@@ -81,6 +81,40 @@ function App() {
                     console.log(`Model is loading. Retrying after ${waitTime / 1000} seconds...`);
                     alert(`Model is loading. Retrying after ${waitTime / 1000} seconds...`);
                     setTimeout(textToSpeech, waitTime);
+                } else {
+                    console.error(error);
+                }
+            }
+        }
+    };
+
+
+    const getTopicOfText = async (text: any) => {
+
+        if (text !== null) {
+            try {
+                const response = await axios({
+                    method: 'post',
+                    url: '/sakib131/bangla-conv-summarizer-model',
+                    data: text,
+                    headers: {
+                        'Content-Type': 'text',
+                        Authorization: 'Bearer ' + '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',
+                    },
+                });
+                const newTopics = response.data.map(item => item.generated_text);
+                setTopics(newTopics);
+
+            } catch (error) {
+                if (
+                    error.response &&
+                    error.response.data.error ===
+                    'Model bangla-speech-processing/BanglaASR is currently loading'
+                ) {
+                    const waitTime = error.response.data.estimated_time * 1000; // convert to milliseconds
+                    console.log(`Model is loading. Retrying after ${waitTime / 1000} seconds...`);
+                    alert(`Model is loading. Retrying after ${waitTime / 1000} seconds...`);
+                    setTimeout(getTopicOfText, waitTime);
                 } else {
                     console.error(error);
                 }
@@ -108,6 +142,13 @@ function App() {
                     <div className="text">
                         <div />
                         <p>{text}</p>
+                    </div>
+                    <div className="text">
+                        {topics.map((topic, index) => (
+                            <div key={index}>
+                                <p>{topic}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
